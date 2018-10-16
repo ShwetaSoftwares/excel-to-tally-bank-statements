@@ -1,0 +1,89 @@
+<!-- These XML tags are added to Excel sheet at run-time by UDIMAGIC  -->
+<XMLTAGS CELLREFERENCE="B8" FROMROW="8" xmlns:UDF="TallyUDF">
+
+  <!-- Specifies that this (i.e Column as mentioned above) is the key field -->
+  <COLUMNNAME.LIST>
+    <COLUMNNAME>ID</COLUMNNAME>
+    <COLUMNNAME>NAME</COLUMNNAME>
+  </COLUMNNAME.LIST>
+  
+  <!-- Create a Single Group -->
+  <MASTER TYPE="GROUP" SINGLERECORD="YES">
+    <NAME.LIST>
+      <NAME>New Ledgers</NAME>
+    </NAME.LIST>
+  </MASTER>
+  <!-- Create a Single Ledger -->
+  <MASTER TYPE="LEDGER" SINGLERECORD="YES">
+    <NAME.LIST>
+      <NAME>Suspense A/c</NAME>
+    </NAME.LIST>
+    <PARENT>Expenses Indirect</PARENT>
+  </MASTER>
+  <!-- Create Bank Ledger -->
+  <MASTER TYPE="LEDGER">
+    <NAME.LIST>
+      <NAME COLUMNREFERENCE="K"/>
+    </NAME.LIST>
+    <PARENT>Bank Accounts</PARENT>
+  </MASTER>
+  <!-- Create Other ledgers -->
+  <MASTER TYPE="LEDGER">
+    <NAME.LIST>
+      <NAME COLUMNREFERENCE="L"/>
+    </NAME.LIST>
+    <PARENT FORMULA="=If(len(trim(M#))=0,&quot;New Ledgers&quot;,M#)"/>
+  </MASTER>
+  
+  <VOUCHER SKIP="=len(trim(C#))=0">
+    <GUID FORMULA="=&quot;udi-H6DP9W-&quot; &amp; B# &amp; &quot;-&quot; &amp; C#"/>
+    <DATE COLUMNREFERENCE="C"/>
+    <EFFECTIVEDATE COLUMNREFERENCE="C"/>
+    <VOUCHERTYPENAME FORMULA="=if(len(trim(N#))=0,if(G#=&quot;CR&quot;,&quot;Receipt&quot;,&quot;Payment&quot;),trim(N#))"/>
+    <ISINVOICE>No</ISINVOICE>
+    <NARRATION FORMULA="=F#"/>
+
+    <!-- Party or Expense or Suspense ledger -->
+    <ALLLEDGERENTRIES.LIST>
+      <LEDGERNAME FORMULA="=if(len(trim(L#))=0,&quot;Suspense A/c&quot;,L#)"/>
+      <ISDEEMEDPOSITIVE FORMULA="=if(G#=&quot;CR&quot;,&quot;No&quot;,&quot;Yes&quot;)"/>
+      <!-- 
+      CR in Bank statement means DEPOSIT .i.e. Other Ledger Credit in Tally
+      DR in Bank statement means WITHDRAWAL i.e. Other Ledger Debit in Tally
+      -->
+      <AMOUNT FORMULA="={Round(substitute(H#,&quot;,&quot;,&quot;&quot;)*1,2)*if(G#=&quot;CR&quot;,1,-1)}"/>
+    </ALLLEDGERENTRIES.LIST>
+
+    <!-- Bank Ledger -->
+    <ALLLEDGERENTRIES.LIST>
+      <LEDGERNAME FORMULA="=if(len(trim(K#))=0,K$8,K#)"/>
+      <ISDEEMEDPOSITIVE FORMULA="=if(G#=&quot;CR&quot;,&quot;Yes&quot;,&quot;No&quot;)"/>
+      <!-- 
+      CR in Bank statement means DEPOSIT .i.e. Bank Ledger Debit in Tally
+      DR in Bank statement means WITHDRAWAL i.e. Bank Ledger Credit in Tally
+      -->
+      <AMOUNT FORMULA="={Round(substitute(H#,&quot;,&quot;,&quot;&quot;)*1,2)*if(G#=&quot;CR&quot;,-1,1)}"/>
+      
+      <BANKALLOCATIONS.LIST>
+        <DATE COLUMNREFERENCE="C" />
+        <INSTRUMENTNUMBER COLUMNREFERENCE="E" />
+
+        <INSTRUMENTDATE COLUMNREFERENCE="O"/>
+        <!-- Using Cheque instead of Cheque/DD as the other details do NOT appear in Tally screen for Cheque/DD -->
+        <TRANSACTIONTYPE FORMULA="=if(len(trim(P#))=0,&quot;Cheque&quot;,P#)"/>
+        <PAYMENTFAVOURING FORMULA="=if(len(trim(Q#))=0,if(len(trim(L#))=0,&quot;Suspense A/c&quot;,L#),Q#)"/>
+        <CHEQUECROSSCOMMENT COLUMNREFERENCE="R"/>
+        <BANKERSDATE COLUMNREFERENCE="S"/>
+        <NARRATION COLUMNREFERENCE="T"/>
+
+        <STATUS>No</STATUS>
+        <AMOUNT FORMULA="={Round(substitute(H#,&quot;,&quot;,&quot;&quot;)*1,2)*if(G#=&quot;CR&quot;,-1,1)}"/>
+        <PAYMENTMODE>Transacted</PAYMENTMODE>
+        <NAME FORMULA="=&quot;udi-H6DP9W-&quot; &amp; B# &amp; &quot;-&quot; &amp; C#"/>
+      </BANKALLOCATIONS.LIST>
+    </ALLLEDGERENTRIES.LIST>
+    <TEST SCROLL="YES">
+      <T1>Test</T1>
+    </TEST>
+  </VOUCHER>
+</XMLTAGS>
